@@ -16,6 +16,7 @@ Power::Power(const InputParameters & parameters)
     _Eeff(getMaterialProperty<Real>("Eeff"))
 {
 }
+
 Real Power::computeValue()
 {
   return _flux[_qp] * _fission_cross_section[_qp] * _Eeff[_qp];

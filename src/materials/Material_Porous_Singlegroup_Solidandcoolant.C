@@ -64,17 +64,18 @@ void Material_Porous_Singlegroup_Solidandcoolant::computeQpProperties()
     _area[_qp] = _input_area;
     _Eeff[_qp] = _input_Eeff;
 
-    _coolant_alpha[_qp] = 4105;
+    //_coolant_alpha[_qp] = 4105;
+    _coolant_alpha[_qp] = 2443;
     _coolant_rho[_qp] = 598.24 + 2.93 * _tem_coolant[_qp] - 0.836E-2 * _tem_coolant[_qp] * _tem_coolant[_qp];
     _coolant_capacity[_qp] = 2.06E+4 - 126 * _tem_coolant[_qp] + 0.2539 * _tem_coolant[_qp] * _tem_coolant[_qp];
-    _coolant_lambda[_qp] = 0.355 + 0.34E-2 * _tem_coolant[_qp] - 8.82E-6 * _tem_coolant[_qp] * _tem_coolant[_qp];
+    _coolant_lambda[_qp] = 0.335 + 0.34E-2 * _tem_coolant[_qp] - 8.82E-6 * _tem_coolant[_qp] * _tem_coolant[_qp];
     _flow_resistance[_qp] = _input_flow_resistance;
 
     _beta[_qp] = 0.0065;
     _lambda[_qp] = 0.0785;
     _absorption_cross_section[_qp] = 15.22 + 0.0000346 * _tem_solid[_qp] + 0.0000104 * _tem_coolant[_qp];
-    _fission_cross_section[_qp] = 18.9 - 0.000104 * _tem_solid[_qp] - 0.0104 * _tem_coolant[_qp];
-    _fission_cross_section_v[_qp] = (18.9 - 0.000104 * _tem_solid[_qp] - 0.0104 * _tem_coolant[_qp]) * _input_v;
+    _fission_cross_section[_qp] = (17.39 - 9.57E-4 * _tem_solid[_qp] - 3.25E-3 * _tem_coolant[_qp]) / _input_v;
+    _fission_cross_section_v[_qp] = 17.39 - 9.57E-4 * _tem_solid[_qp] - 3.25E-3 * _tem_coolant[_qp];
     _diffusion_coefficient[_qp] = 0.092 - 0.000000275 * _tem_solid[_qp] - 0.000000275 * _tem_coolant[_qp];
     _velocity[_qp] = _input_velocity;
     _power_coefficient[_qp] = _input_power_coefficient;

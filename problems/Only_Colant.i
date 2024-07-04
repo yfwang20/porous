@@ -4,8 +4,8 @@
         dim = 2
         xmax = 2
         ymax = 3
-        nx = 100
-        ny = 100
+        nx = 50
+        ny = 50
     []
 []
 
@@ -15,6 +15,7 @@
         type = SMP
         petsc_options_iname = '-pc_type'
         petsc_options_value = 'lu'
+        full = true
     []
 []
 
@@ -23,44 +24,16 @@
         order = FIRST
         family = LAGRANGE
     []
-
-    [u_coolant]
-        order = FIRST
-        family = LAGRANGE
-    []
-
-    [pressure_coolant]
-        order = FIRST
-        family = LAGRANGE
-    []
 []
 
 
 [Kernels]
     # coolant
-    # coolant_continuity
-
-    [coolant_continuity]
-        type = Coolant_Continuity_Fake
-        variable = u_coolant
-        tem_coolant_topboundary = 290
-        u_coolant_topboundary = 1
-    []
-
-    # coolant_momentum
-    [coolant_momentum_viscidityandg]
-        type = Coolant_Momentum_Viscidityandg_Solidandcoolant
-        variable = pressure_coolant
-        u_coolant = u_coolant
-    []
-
-    [coolant_momentum_pressure]
-        type = Coolant_Momentum_Pressure_Solidandcoolant
-        variable = pressure_coolant
-        component = y
-    []
+    
 
     # coolant_energy
+
+
 
     [coolant_energy_diffusion]
         type = Coolant_Energy_Diffusion_term
@@ -68,17 +41,21 @@
     []
 
     [coolant_energy_convection]
-        type = Coolant_Energy_Convection_Solidandcoolant
+        type = Coolant_Energy_Convection_nnew_Solidandcoolant_y
         variable = tem_coolant
-        u_coolant = u_coolant
-        tem_coolant = tem_coolant
+        rhou = 700
         component = y
+        # v = '0 1 0'
     []
 
     [coolant_energy_exchangeheat]
         type = Coolant_Energy_Exchangeheat_Onlycoolant
         variable = tem_coolant
     []
+
+
+
+
 []
 
 
@@ -110,42 +87,37 @@
         value = 290
     []
 
-    # u_coolant
-    [u_coolant_top]
-        type = DirichletBC
-        variable = u_coolant
-        boundary = 'top'
-        value = 1
-    []
 
-    # pressure_coolant
-    [pressure_coolant_bottom]
-        type = DirichletBC
-        variable = pressure_coolant
-        boundary = 'bottom'
-        value = 7E+6
-    []
+
 
 []
 
 
 [ICs]
     active = ' '
-    [constant_flux]
+    [constant_tem_coolant]
         type = ConstantIC
-        variable = flux
-        value = 2
-    []
-    [constant_tem_solid]
-        type = ConstantIC
-        variable = tem_solid
+        variable = tem_coolant
         value = 300
+    []
+    [constant_u_coolant]
+        type = ConstantIC
+        variable = u_coolant
+        value = 1
+    []
+    [constant_pressure_solid]
+        type = ConstantIC
+        variable = pressure_coolant
+        value = 7E+1
     []
 []
 
 [Executioner]
     type = Steady
     solve_type = PJFNK
+
+    #num_steps = 20
+    #dt = 0.001
     #normal_factor = 8.5211024147101e+7
     #normalization = powernorm
     # bx_norm = fnorm

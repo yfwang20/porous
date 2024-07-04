@@ -21,7 +21,7 @@ Solid_Fissionheat::Solid_Fissionheat(const InputParameters & parameters)
 
 Real Solid_Fissionheat::computeQpResidual()
 {
-    return -_test[_i][_qp] * _Eeff[_qp] * (1 - _porous_coefficient[_qp]) * _fission_cross_section[_qp] * _flux[_qp] * _power_coefficient[_qp];
+    return -_test[_i][_qp] * _Eeff[_qp] * _fission_cross_section[_qp] * _flux[_qp] * _power_coefficient[_qp];
 }
 
 Real Solid_Fissionheat::computeQpJacobian()
@@ -33,7 +33,7 @@ Real Solid_Fissionheat::computeQpOffDiagJacobian(unsigned int jvar)
 {
   if(jvar == _flux_var)
   {
-    return -_test[_i][_qp] * _Eeff[_qp] * (1 - _porous_coefficient[_qp])  * _fission_cross_section[_qp] * _phi[_j][_qp] * _power_coefficient[_qp];
+    return -_test[_i][_qp] * _Eeff[_qp] * _fission_cross_section[_qp] * _phi[_j][_qp] * _power_coefficient[_qp];
   }
   return 0.0;
 }

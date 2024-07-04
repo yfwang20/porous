@@ -4,8 +4,8 @@
         dim = 2
         xmax = 3
         ymax = 4
-        nx = 100
-        ny = 100
+        nx = 80
+        ny = 80
     []
 []
 
@@ -14,14 +14,14 @@
     [bdp]
         type = SMP
         petsc_options_iname = '-pc_type'
-        petsc_options_value = 'lu'
+        petsc_options_value = 'ilu'
     []
 
     [smp_test]
       type = SMP
       #full = true
-      off_diag_row    = 'tem_solid'
-      off_diag_column = 'flux'
+      off_diag_row    = 'flux tem_solid'
+      off_diag_column = 'delayed_c1 flux'
       petsc_options_iname = '-pc_type'
       petsc_options_value = 'lu'
     []
@@ -33,58 +33,13 @@
         petsc_options_value = 'lu'
     []
 
-    [smp_lt]
-      type = SMP
-      #full = true
-      off_diag_row    = 'delayed_c1 tem_solid tem_solid tem_coolant tem_coolant tem_coolant'
-      off_diag_column = 'flux flux delayed_c1 flux delayed_c1 tem_solid'
-      petsc_options_iname = '-pc_type'
-      petsc_options_value = 'lu'
-    []
-
-    [smp_set]
-      type = SMP
-      #full = true
-      off_diag_row    = 'delayed_c1 tem_solid tem_coolant tem_coolant'
-      off_diag_column = 'flux flux tem_solid flux'
-      petsc_options_iname = '-pc_type'
-      petsc_options_value = 'lu'
-    []
-
-    [smp_ut]
-      type = SMP
-      #full = true
-      off_diag_row    = 'flux flux delayed_c1 flux delayed_c1 tem_solid'
-      off_diag_column = 'delayed_c1 tem_solid tem_solid tem_coolant tem_coolant tem_coolant'
-      petsc_options_iname = '-pc_type'
-      petsc_options_value = 'lu'
-    []
-
     [pbp_test]
 		type = PBP
 		solve_order = 'flux delayed_c1 tem_solid tem_coolant'
 		preconditioner  = 'LU LU LU LU'
 		#full = true
-		off_diag_row    = 'tem_solid'
-		off_diag_column = 'flux'
-  []
-
-  [pbp]
-    type = PBP
-    solve_order = 'flux delayed_c1 tem_solid tem_coolant'
-    preconditioner  = 'LU LU LU LU'
-    #full = true
-    off_diag_row    = 'delayed_c1 tem_solid tem_solid tem_coolant tem_coolant tem_coolant'
-    off_diag_column = 'flux flux delayed_c1 flux delayed_c1 tem_solid'
-  []
-
-	[pbp_lt]
-		type = PBP
-		solve_order = 'flux delayed_c1 tem_solid tem_coolant'
-		preconditioner  = 'LU LU LU LU'
-		#full = true
-		off_diag_row    = 'delayed_c1 tem_solid tem_solid tem_coolant tem_coolant tem_coolant'
-		off_diag_column = 'flux flux delayed_c1 flux delayed_c1 tem_solid'
+		off_diag_row    = 'tem_coolant'
+		off_diag_column = 'tem_solid'
   []
 []
 
@@ -119,6 +74,11 @@
 
 [Kernels]
     # neutron 1
+    [neutrontimederivative]
+        type = NeutronTimeDerivative
+        variable = flux
+    []
+
     [diffusion]
         type = Diffusion_term_Singlegroup
         variable = flux
@@ -130,26 +90,38 @@
     []
 
     [fission]
-        type = Fission_Singlegroup_Eigen
+        type = Fission_Singlegroup_Transient
         variable = flux
-        extra_vector_tags = 'eigen'
+        keff = 0.996480089
     []
+
+    [delayedneutronsources]
+        type = Delayed_NeutronSources
+        variable = flux
+        delayed_c1 = delayed_c1
+    []
+
 
     # delayed 1
 
-    [delayed_nucleus_c1_decay]
-        type = DelayedNeutron_Decay
+    [delayed_nucleus_c1_timederivate]
+        type = DelayedNeutron_TimeDerivate
         variable = delayed_c1
     []
 
-    [delayed_nucleus_c1_fission]
-        type = DelayedNeutron_Fission
+    [delayed_nucleus_c1_decayandfission]
+        type = DelayedNeutron_Decayandfission
         variable = delayed_c1
         flux = flux
-        extra_vector_tags = 'eigen'
+        keff = 0.996480089
     []
 
     # solid 1
+
+    [solid_timederivative]
+        type = Solid_TimeDerivative
+        variable = tem_solid
+    []
 
     [solid_diffusion]
         type = Solid_Diffusion_term
@@ -172,6 +144,11 @@
     # coolant
 
     # coolant_energy
+
+    [coolant_energy_timederivative]
+        type = Coolant_Energy_TimeDerivate
+        variable = tem_coolant
+    []
 
     [coolant_energy_diffusion]
         type = Coolant_Energy_Diffusion_term
@@ -216,6 +193,7 @@
         v = 2.5
         # v = 1
         power_coefficient = 3.43E+20 # 3.43E+20 confirmed
+        # power_coefficient = 1
         flow_resistance = 0.1
     []
 []
@@ -301,90 +279,123 @@
 
 
 [ICs]
-    active = ''
-    [constant_flux]
-        type = ConstantIC
+    [eigen_flux]
+        type = SolutionIC
+        solution_uo = eigensolution
         variable = flux
-        value = 2
+        from_variable = 'flux'
     []
-    [constant_tem_solid]
-        type = ConstantIC
+
+    [eigen_c1]
+        type = SolutionIC
+        solution_uo = eigensolution
+        variable = delayed_c1
+        from_variable = 'delayed_c1'
+    []
+
+    [eigen_tem_solid]
+        type = SolutionIC
+        solution_uo = eigensolution
         variable = tem_solid
-        value = 300
+        from_variable = 'tem_solid'
+    []
+
+    [eigen_tem_coolant]
+        type = SolutionIC
+        solution_uo = eigensolution
+        variable = tem_coolant
+        from_variable = 'tem_coolant'
+    []
+[]
+
+[UserObjects]
+    [eigensolution]
+        type = SolutionUserObject
+        # mesh = 'results/Without_normalization/Only_Solid_eigen_out.e'
+        mesh = 'results/4*3_Power=2500MW/Solidandcoolant_eigen_out.e'
+        system_variables = 'flux delayed_c1 tem_solid tem_coolant'
+        timestep = LATEST
     []
 []
 
 [Executioner]
-    type = Eigenvalue
+    type = Transient
     solve_type = PJFNK
+    end_time = 2
+    dt = 0.01
     #normal_factor = 8.5211024147101e+7
     #normalization = powernorm
     # bx_norm = fnorm
     # n_eigen_pairs = 1
     # which_eigen_pairs = LARGEST_IMAGINARY
 
-    free_power_iterations = 0
-    automatic_scaling = true
-    # normal_factor = 10.487E+17
-    # normalization = average_flux
+    
+    #automatic_scaling = true
+    #compute_scaling_once = false
+    
 
     # l_max_its = 50
     # l_tol = 0.001
 []
 
 [Postprocessors]
-  [fnorm]
-    type = ElementIntegralVariablePostprocessor
-    variable = flux
-    execute_on = 'initial linear'
-  []
-
   [average_flux]
     type = ElementAverageValue
     variable = flux
-    execute_on = 'initial linear'
+    execute_on = 'initial timestep_end'
   []
 
-  [powernorm]
-        type = ElementIntegralVariablePostprocessor
-        variable = power
-        execute_on = 'initial linear'
-  []
-
-    [fnorm_delayed_c1]
-        type = ElementIntegralVariablePostprocessor
+    [average_delayed_c1]
+        type = ElementAverageValue
         variable = delayed_c1
-        execute_on = 'initial linear'
+        execute_on = 'initial timestep_end'
     []
 
     [average_tem_solid]
         type = ElementAverageValue
         variable = tem_solid
-        execute_on = 'initial linear'
+        execute_on = 'initial timestep_end'
     []
+
     [average_tem_coolant]
         type = ElementAverageValue
         variable = tem_coolant
-        execute_on = 'initial linear'
+        execute_on = 'initial timestep_end'
     []
-[]
 
-[VectorPostprocessors]
-  [eigenvalues]
-    type = Eigenvalues
-    execute_on = 'timestep_end'
+    [max_flux]
+    type = ElementExtremeValue
+    variable = flux
+    execute_on = 'initial timestep_end'
   []
 
-  [diagonal_flux]
-    type = PointValueSampler
-    variable = 'tem_coolant'
-    points = '0 4 0 0.3 4 0 0.6 4 0 0.0 4 0 1.2 4 0 1.5 4 0 1.8 4 0 2.1 4 0 2.4 4 0 2.7 4 0 3 4 0'
-    sort_by = x
+    [max_delayed_c1]
+        type = ElementExtremeValue
+        variable = delayed_c1
+        execute_on = 'initial timestep_end'
+    []
+
+    [max_tem_solid]
+        type = ElementExtremeValue
+        variable = tem_solid
+        execute_on = 'initial timestep_end'
+    []
+
+    [max_tem_coolant]
+        type = ElementExtremeValue
+        variable = tem_coolant
+        execute_on = 'initial timestep_end'
+    []
+
+    [powernorm]
+        type = ElementIntegralVariablePostprocessor
+        variable = power
+        execute_on = 'initial timestep_end'
   []
 []
 
 [Outputs]
-  execute_on = 'timestep_end'
+  execute_on = 'initial timestep_end'
   exodus = true
   csv = true
 []

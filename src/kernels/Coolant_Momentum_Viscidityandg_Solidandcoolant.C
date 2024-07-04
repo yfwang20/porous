@@ -20,7 +20,7 @@ Coolant_Momentum_Viscidityandg_Solidandcoolant::Coolant_Momentum_Viscidityandg_S
 
 Real Coolant_Momentum_Viscidityandg_Solidandcoolant::computeQpResidual()
 {
-    return _test[_i][_qp] * (_coolant_rho[_qp] * _u_coolant[_qp] - _porous_coefficient[_qp] * _coolant_rho[_qp] * 9.8);
+    return _test[_i][_qp] * (_flow_resistance[_qp] * _coolant_rho[_qp] * _u_coolant[_qp] - _porous_coefficient[_qp] * _coolant_rho[_qp] * 9.8);
 }
 
 Real Coolant_Momentum_Viscidityandg_Solidandcoolant::computeQpJacobian()
@@ -32,7 +32,7 @@ Real Coolant_Momentum_Viscidityandg_Solidandcoolant::computeQpOffDiagJacobian(un
 {
     if(jvar == _u_coolant_var)
     {
-       return _test[_i][_qp] * _coolant_rho[_qp] * _phi[_j][_qp];
+       return _test[_i][_qp] * _flow_resistance[_qp] * _coolant_rho[_qp] * _phi[_j][_qp];
     }
     return 0.0;
 }
